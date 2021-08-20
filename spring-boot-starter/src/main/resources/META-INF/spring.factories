@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+    dev.niubi.problem.spring.autoconfigure.ProblemAutoConfiguration
