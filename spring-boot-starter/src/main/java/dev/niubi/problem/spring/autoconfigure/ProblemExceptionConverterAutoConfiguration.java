@@ -45,6 +45,7 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -93,6 +94,8 @@ public class ProblemExceptionConverterAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(prefix = "dev.niubi.problem.feature", name = "http",
+        havingValue = "true", matchIfMissing = true)
     public ExceptionConverterCustomizer httpExceptionConverterCustomizer() {
       return builder -> builder.addConverter(new MethodNotAllowedExceptionConverter())
           .addConverter(new NotAcceptableStatusExceptionConverter())
@@ -102,6 +105,8 @@ public class ProblemExceptionConverterAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(prefix = "dev.niubi.problem.feature", name = "validation",
+        havingValue = "true", matchIfMissing = true)
     public ExceptionConverterCustomizer validationExceptionConverterCustomizer(
         MessageSource messageSource
     ) {
@@ -113,6 +118,8 @@ public class ProblemExceptionConverterAutoConfiguration {
 
   @Configuration(proxyBeanMethods = false)
   @ConditionalOnClass(MissingKotlinParameterException.class)
+  @ConditionalOnProperty(prefix = "dev.niubi.problem.feature", name = "kotlin",
+      havingValue = "true", matchIfMissing = true)
   public static class KotlinExceptionConverterConfiguration {
 
     @Bean
@@ -124,6 +131,8 @@ public class ProblemExceptionConverterAutoConfiguration {
 
   @Configuration(proxyBeanMethods = false)
   @ConditionalOnClass({Servlet.class, DispatcherServlet.class, ServletException.class})
+  @ConditionalOnProperty(prefix = "dev.niubi.problem.feature", name = "mvc",
+      havingValue = "true", matchIfMissing = true)
   public static class WebMvcExceptionConverterConfiguration {
 
     @Bean
@@ -138,6 +147,8 @@ public class ProblemExceptionConverterAutoConfiguration {
 
   @Configuration(proxyBeanMethods = false)
   @ConditionalOnClass({AccessDeniedException.class, AuthenticationException.class})
+  @ConditionalOnProperty(prefix = "dev.niubi.problem.feature", name = "security",
+      havingValue = "true", matchIfMissing = true)
   public static class SecurityExceptionConverterConfiguration {
 
     @Bean

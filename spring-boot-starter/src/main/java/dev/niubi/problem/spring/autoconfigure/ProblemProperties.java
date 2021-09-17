@@ -18,6 +18,7 @@ package dev.niubi.problem.spring.autoconfigure;
 
 import java.net.URI;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.MediaType;
 
@@ -28,6 +29,8 @@ public class ProblemProperties {
   private URI domain;
   private boolean i18n;
   private Reactive reactive = new Reactive();
+  private Servlet servlet = new Servlet();
+  private Feature feature = new Feature();
 
   public Reactive getReactive() {
     return reactive;
@@ -35,6 +38,22 @@ public class ProblemProperties {
 
   public void setReactive(Reactive reactive) {
     this.reactive = reactive;
+  }
+
+  public Servlet getServlet() {
+    return servlet;
+  }
+
+  public void setServlet(Servlet servlet) {
+    this.servlet = servlet;
+  }
+
+  public Feature getFeature() {
+    return feature;
+  }
+
+  public void setFeature(Feature feature) {
+    this.feature = feature;
   }
 
   public boolean isEnabled() {
@@ -74,6 +93,20 @@ public class ProblemProperties {
     }
   }
 
+  public static class Servlet {
+
+    @Value("${problem.path:/problem}")
+    private String path = "/problem";
+
+    public String getPath() {
+      return path;
+    }
+
+    public void setPath(String path) {
+      this.path = path;
+    }
+  }
+
   public static class Reactive {
 
     private boolean requestId = true;
@@ -84,6 +117,55 @@ public class ProblemProperties {
 
     public void setRequestId(boolean requestId) {
       this.requestId = requestId;
+    }
+  }
+
+  public static class Feature {
+
+    private boolean security = true;
+    private boolean mvc = true;
+    private boolean kotlin = true;
+    private boolean validation = true;
+    private boolean http = true;
+
+    public boolean isSecurity() {
+      return security;
+    }
+
+    public void setSecurity(boolean security) {
+      this.security = security;
+    }
+
+    public boolean isMvc() {
+      return mvc;
+    }
+
+    public void setMvc(boolean mvc) {
+      this.mvc = mvc;
+    }
+
+    public boolean isKotlin() {
+      return kotlin;
+    }
+
+    public void setKotlin(boolean kotlin) {
+      this.kotlin = kotlin;
+    }
+
+    public boolean isValidation() {
+      return validation;
+    }
+
+    public void setValidation(boolean validation) {
+      this.validation = validation;
+    }
+
+    public boolean isHttp() {
+      return http;
+    }
+
+    public void setHttp(boolean http) {
+      this.http = http;
     }
   }
 }

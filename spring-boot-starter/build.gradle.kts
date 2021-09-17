@@ -17,7 +17,7 @@ dependencies {
         exclude("commons-logging", "commons-logging")
         exclude("org.springframework", "spring-jcl")
     }
-    compileOnly("org.springframework.security:spring-security-core")
+    compileOnly("org.springframework.security:spring-security-web")
     compileOnly("org.springframework:spring-webflux")
     compileOnly("org.springframework:spring-webmvc")
     compileOnly("jakarta.servlet:jakarta.servlet-api")

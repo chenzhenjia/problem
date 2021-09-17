@@ -12,7 +12,7 @@ dependencies {
         exclude("commons-logging", "commons-logging")
         exclude("org.springframework", "spring-jcl")
     }
-    compileOnly("org.springframework.security:spring-security-core")
+    compileOnly("org.springframework.security:spring-security-web")
     compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
     compileOnly("jakarta.validation:jakarta.validation-api:3.0.0")
     compileOnly("org.springframework:spring-webflux")

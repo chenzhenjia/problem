@@ -17,6 +17,7 @@
 package dev.niubi.problem.spring.autoconfigure.web.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.niubi.problem.spring.autoconfigure.ProblemProperties;
 import dev.niubi.problem.spring.convert.ExceptionConverterManager;
 import dev.niubi.problem.spring.web.servlet.MessageSourceProblemFunction;
 import dev.niubi.problem.spring.web.servlet.ProblemFunction;
@@ -29,23 +30,33 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletPath;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.web.server.ErrorPage;
+import org.springframework.boot.web.server.ErrorPageRegistrar;
+import org.springframework.boot.web.server.ErrorPageRegistry;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.Ordered;
 import org.springframework.web.servlet.DispatcherServlet;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication(type = Type.SERVLET)
 @ConditionalOnClass({Servlet.class, DispatcherServlet.class})
 @AutoConfigureBefore(WebMvcAutoConfiguration.class)
+@Import(ProblemSecurityConfiguration.class)
 public class ProblemMvcAutoConfiguration {
 
   private final ExceptionConverterManager exceptionConverterManager;
+  private final ProblemProperties properties;
 
   public ProblemMvcAutoConfiguration(
-      ExceptionConverterManager exceptionConverterManager) {
+      ExceptionConverterManager exceptionConverterManager,
+      ProblemProperties properties) {
     this.exceptionConverterManager = exceptionConverterManager;
+    this.properties = properties;
   }
 
   @Bean
@@ -64,5 +75,40 @@ public class ProblemMvcAutoConfiguration {
         .orElse(null);
     problemHandlerExceptionResolver.setProblemFunction(problemFunction);
     return problemHandlerExceptionResolver;
+  }
+
+  @Bean
+  public ProblemErrorController problemErrorController() {
+    return new ProblemErrorController(exceptionConverterManager);
+  }
+
+  @Bean
+  public ErrorPageProblem errorPageProblem(DispatcherServletPath dispatcherServletPath) {
+    return new ErrorPageProblem(dispatcherServletPath, properties);
+  }
+
+  static class ErrorPageProblem implements ErrorPageRegistrar, Ordered {
+
+    private final DispatcherServletPath dispatcherServletPath;
+    private final ProblemProperties properties;
+
+    ErrorPageProblem(
+        DispatcherServletPath dispatcherServletPath,
+        ProblemProperties properties) {
+      this.dispatcherServletPath = dispatcherServletPath;
+      this.properties = properties;
+    }
+
+    @Override
+    public void registerErrorPages(ErrorPageRegistry registry) {
+      ErrorPage errorPage = new ErrorPage(Throwable.class,
+          this.dispatcherServletPath.getRelativePath(properties.getServlet().getPath()));
+      registry.addErrorPages(errorPage);
+    }
+
+    @Override
+    public int getOrder() {
+      return -1000;
+    }
   }
 }

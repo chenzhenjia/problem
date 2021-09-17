@@ -19,12 +19,21 @@ package dev.niubi.problem;
 public class ProblemException extends RuntimeException {
 
   private final Problem problem;
+  private String message;
 
   public ProblemException(Problem problem) {
     this.problem = problem;
+    if (problem.getTitle() != null) {
+      this.message = problem.getTitle();
+    }
   }
 
   public Problem getProblem() {
     return problem;
+  }
+
+  @Override
+  public String getMessage() {
+    return message;
   }
 }
