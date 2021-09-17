@@ -66,9 +66,9 @@ public class SecurityProblemHandler implements AccessDeniedHandler, Authenticati
       return;
     }
     try {
-      Objects.requireNonNull(mv.getView()).render(mv.getModel(), request, response);
       response.setStatus(Optional.ofNullable(mv.getStatus()).map(HttpStatus::value)
           .orElse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
+      Objects.requireNonNull(mv.getView()).render(mv.getModel(), request, response);
     } catch (Exception e) {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
