@@ -73,12 +73,11 @@ public interface WebFluxProblemAdvice {
   @ExceptionHandler(ResponseStatusException.class)
   default Problem handleResponseStatus(ResponseStatusException exception) {
     HttpStatus status = exception.getStatus();
-    return Problem.statusOnly(new HttpStatusAdapter(status))
-        .withDetail(exception.getMessage());
+    return Problem.statusOnly(new HttpStatusAdapter(status));
   }
 
   @ExceptionHandler(ServerWebInputException.class)
   default Problem handleServerWebInput(ServerWebInputException exception) {
-    return Http.BAD_REQUEST.withDetail(exception.getMessage());
+    return Http.BAD_REQUEST;
   }
 }

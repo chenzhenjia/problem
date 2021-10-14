@@ -26,7 +26,7 @@ public interface GeneralProblemAdvice {
 
   @ExceptionHandler(IllegalArgumentException.class)
   default Problem handleIllegalArgument(IllegalArgumentException throwable) {
-    return General.ILLEGAL_ARGUMENT.withDetail(throwable.getMessage());
+    return General.ILLEGAL_ARGUMENT;
   }
 
 

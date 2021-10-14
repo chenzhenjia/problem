@@ -41,13 +41,13 @@ public interface WebMvcProblemAdvice {
 
   @ExceptionHandler(MissingServletRequestPartException.class)
   default Problem handleMissingServletRequestPart(MissingServletRequestPartException exception) {
-    return Servlet.MISSING_REQUEST_PART.withDetail(exception.getMessage())
+    return Servlet.MISSING_REQUEST_PART
         .withProperties(map -> map.put("requestPartName", exception.getRequestPartName()));
   }
 
   @ExceptionHandler(NoHandlerFoundException.class)
   default Problem handleNoHandlerFound(NoHandlerFoundException exception) {
-    return Servlet.NO_HANDLER_FOUND.withDetail(exception.getMessage()).withProperties(map -> {
+    return Servlet.NO_HANDLER_FOUND.withProperties(map -> {
       map.put("requestURL", exception.getRequestURL());
       map.put("method", exception.getHttpMethod());
     });
@@ -109,6 +109,6 @@ public interface WebMvcProblemAdvice {
     } else {
       problem = Servlet.REQUEST_BINDING;
     }
-    return problem.withDetail(exception.getMessage());
+    return problem;
   }
 }

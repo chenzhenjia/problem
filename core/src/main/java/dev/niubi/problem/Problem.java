@@ -61,10 +61,26 @@ public class Problem {
     this.detail = detail;
   }
 
+  public Problem(@Nullable String type, @Nullable String title, @Nullable Status status,
+      @Nullable String detail) {
+    this.type = Optional.ofNullable(type).map(URI::create).orElse(BLANK);
+    this.title = title;
+    this.status = status;
+    this.detail = detail;
+  }
+
   public static Problem create(final Status status, final String type) {
+    return create(status, type, null, null);
+  }
+
+  public static Problem create(final Status status, final String type, String title) {
+    return create(status, type, title, null);
+  }
+
+  public static Problem create(final Status status, final String type, String title, String detail) {
     Objects.requireNonNull(type, "type must not be null!");
     Objects.requireNonNull(status, "Status must not be null!");
-    return new Problem(URI.create(type), null, status, null);
+    return new Problem(URI.create(type), title, status, detail);
   }
 
   public static Problem badRequest(final String code) {

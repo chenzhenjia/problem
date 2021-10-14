@@ -27,7 +27,7 @@ public class ProblemProperties {
 
   private boolean enabled;
   private URI domain;
-  private boolean i18n;
+  private boolean i18n = true;
   private Reactive reactive = new Reactive();
   private Servlet servlet = new Servlet();
   private Feature feature = new Feature();

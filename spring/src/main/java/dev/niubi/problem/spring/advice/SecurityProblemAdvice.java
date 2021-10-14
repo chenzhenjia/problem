@@ -21,6 +21,7 @@ import dev.niubi.problem.spring.Problems.Security;
 import dev.niubi.problem.spring.web.ProblemAdvice;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AccountExpiredException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -33,7 +34,7 @@ public interface SecurityProblemAdvice {
 
   @ExceptionHandler(AccessDeniedException.class)
   default Problem handleAccessDenied(AccessDeniedException exception) {
-    return Security.ACCESS_DENIED.withDetail(exception.getMessage());
+    return Security.ACCESS_DENIED;
   }
 
   @ExceptionHandler(AuthenticationException.class)
@@ -49,9 +50,11 @@ public interface SecurityProblemAdvice {
       problem = Security.ACCOUNT_LOCKED;
     } else if (exception instanceof UsernameNotFoundException) {
       problem = Security.USERNAME_NOT_FOUND;
+    } else if (exception instanceof BadCredentialsException) {
+      problem = Security.BAD_CREDENTIALS;
     } else {
       problem = Security.UNAUTHORIZED;
     }
-    return problem.withDetail(exception.getMessage());
+    return problem;
   }
 }

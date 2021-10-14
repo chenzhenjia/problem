@@ -34,14 +34,14 @@ import org.springframework.web.reactive.result.view.ViewResolver;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-public class ProblemReactiveWebExceptionHandler implements ErrorWebExceptionHandler {
+public class ProblemWebExceptionHandler implements ErrorWebExceptionHandler {
 
   private final ProblemAdviceManager problemAdviceManager;
   private ReactiveProblemConsumer problemFunction = (exchange, problem) -> {
   };
   private List<HttpMessageWriter<?>> messageWriters = Collections.emptyList();
 
-  public ProblemReactiveWebExceptionHandler(ProblemAdviceManager problemAdviceManager) {
+  public ProblemWebExceptionHandler(ProblemAdviceManager problemAdviceManager) {
     this.problemAdviceManager = problemAdviceManager;
   }
 
@@ -97,7 +97,7 @@ public class ProblemReactiveWebExceptionHandler implements ErrorWebExceptionHand
     @Override
     @NonNull
     public List<HttpMessageWriter<?>> messageWriters() {
-      return ProblemReactiveWebExceptionHandler.this.messageWriters;
+      return ProblemWebExceptionHandler.this.messageWriters;
     }
 
     @Override

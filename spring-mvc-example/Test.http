@@ -1,0 +1,17 @@
+POST http://127.0.0.1:8080/login
+Content-Type: application/x-www-form-urlencoded
+
+username=1q&password=12
+###
+POST http://127.0.0.1:8080/login111
+Content-Type: application/x-www-form-urlencoded
+
+username=1q&password=12
+
+###
+GET http://127.0.0.1:8080/api/general/problem
+
+###
+POST http://127.0.0.1:8080/api/general/problem
+###
+GET http://127.0.0.1:8080/api/general/unsupported_operation

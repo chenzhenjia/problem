@@ -18,18 +18,16 @@ package dev.niubi.problem.spring.autoconfigure.web.reactive;
 
 import dev.niubi.problem.spring.autoconfigure.ProblemProperties;
 import dev.niubi.problem.spring.web.ProblemAdviceManager;
-import dev.niubi.problem.spring.web.reactive.ProblemReactiveWebExceptionHandler;
+import dev.niubi.problem.spring.web.i18n.ProblemMessageSource;
+import dev.niubi.problem.spring.web.reactive.ProblemWebExceptionHandler;
 import dev.niubi.problem.spring.web.reactive.ReactiveMessageSourceProblemConsumer;
 import dev.niubi.problem.spring.web.reactive.ReactiveProblemConsumer;
 import dev.niubi.problem.spring.web.reactive.ResponseIdProblemConsumer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
-import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,17 +55,11 @@ public class ProblemFluxAutoConfiguration {
   }
 
   @Bean
-  @ConditionalOnBean(MessageSource.class)
-  @ConditionalOnProperty(value = "dev.niubi.problem.i18n", havingValue = "true")
-  public ReactiveMessageSourceProblemConsumer reactiveMessageSourceProblemFunction(MessageSource messageSource) {
-    return new ReactiveMessageSourceProblemConsumer(messageSource);
-  }
-
-  @Bean
   @Order(-2)
-  public ErrorWebExceptionHandler problemReactiveWebExceptionHandler(
-      ObjectProvider<ReactiveProblemConsumer> problemFunctionObjectProvider) {
-    ProblemReactiveWebExceptionHandler exceptionHandler = new ProblemReactiveWebExceptionHandler(
+  public ProblemWebExceptionHandler problemReactiveWebExceptionHandler(
+      ObjectProvider<ReactiveProblemConsumer> problemFunctionObjectProvider,
+      ObjectProvider<MessageSource> messageSource) {
+    ProblemWebExceptionHandler exceptionHandler = new ProblemWebExceptionHandler(
         problemAdviceManager);
     exceptionHandler.setMessageWriters(serverCodecConfigurer.getWriters());
     ReactiveProblemConsumer problemCustomizer = problemFunctionObjectProvider.orderedStream()
@@ -75,6 +67,10 @@ public class ProblemFluxAutoConfiguration {
         }, ReactiveProblemConsumer::andThen);
     if (properties.getReactive().isRequestId()) {
       problemCustomizer = problemCustomizer.andThen(new ResponseIdProblemConsumer());
+    }
+    if (properties.isI18n()) {
+      ProblemMessageSource problemMessageSource = new ProblemMessageSource(messageSource.getIfAvailable(() -> null));
+      problemCustomizer = problemCustomizer.andThen(new ReactiveMessageSourceProblemConsumer(problemMessageSource));
     }
     exceptionHandler.setProblemFunction(problemCustomizer);
     return exceptionHandler;

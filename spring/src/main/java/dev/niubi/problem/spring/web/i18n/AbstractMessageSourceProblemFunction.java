@@ -19,38 +19,25 @@ package dev.niubi.problem.spring.web.i18n;
 import dev.niubi.problem.Problem;
 import dev.niubi.problem.Problem.ExtendedProblem;
 import dev.niubi.problem.spring.ResponseProblem;
-import java.net.URI;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.MessageSource;
 
 public abstract class AbstractMessageSourceProblemFunction<T> implements BiConsumer<T, ResponseProblem> {
 
+  private static final Pattern REGEX = Pattern.compile("^\\{(.+)}$");
+
   private final MessageSource messageSource;
-  private String codePrefix = "problem";
-  private String separator = ".";
 
   public AbstractMessageSourceProblemFunction(MessageSource messageSource) {
     this.messageSource = messageSource;
-  }
-
-  public void setCodePrefix(String codePrefix) {
-    this.codePrefix = codePrefix;
-  }
-
-  public void setSeparator(String separator) {
-    this.separator = separator;
-  }
-
-  private String getTitle(Problem problem, Locale locale) {
-    Object[] values = buildArgs(problem);
-    return messageSource
-        .getMessage(buildTitleCode(problem.getType()), values, problem.getTitle(), locale);
   }
 
   @Nullable
@@ -71,29 +58,29 @@ public abstract class AbstractMessageSourceProblemFunction<T> implements BiConsu
         .toArray();
   }
 
-  private String getDetail(Problem problem, Locale locale) {
-    return messageSource
-        .getMessage(buildDetailCode(problem.getType()), buildArgs(problem), null,
-            locale);
-  }
 
-  protected String buildTitleCode(URI type) {
-    return codePrefix + separator + type.toString();
-  }
-
-  protected String buildDetailCode(URI type) {
-    return buildTitleCode(type) + ".detail";
+  private String getMessage(String s, Object[] args, String defaultMessage, Locale locale) {
+    if (s == null) {
+      return null;
+    }
+    Matcher matcher = REGEX.matcher(s);
+    if (matcher.matches()) {
+      String code = matcher.group(1);
+      return messageSource.getMessage(code, args, defaultMessage, locale);
+    }
+    return s;
   }
 
   @Override
   public void accept(T t, ResponseProblem problem) {
     Locale locale = getLocale(t);
-    if (problem.getTitle() == null) {
-      String title = getTitle(problem.getProblem(), locale);
+    Object[] args = buildArgs(problem);
+    if (problem.getTitle() != null) {
+      String title = getMessage(problem.getTitle(), args, null, locale);
       problem.withTitle(title);
     }
-    if (problem.getDetail() == null) {
-      String detail = getDetail(problem.getProblem(), locale);
+    if (problem.getDetail() != null) {
+      String detail = getMessage(problem.getDetail(), args, null, locale);
       problem.withDetail(detail);
     }
   }

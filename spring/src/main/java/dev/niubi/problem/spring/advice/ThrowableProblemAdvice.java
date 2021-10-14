@@ -26,6 +26,6 @@ public interface ThrowableProblemAdvice {
 
   @ExceptionHandler(Throwable.class)
   default Problem handleThrowable(Throwable throwable) {
-    return General.INTERNAL_SERVER_ERROR.withDetail(throwable.getMessage());
+    return General.INTERNAL_SERVER_ERROR;
   }
 }

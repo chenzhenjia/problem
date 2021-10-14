@@ -19,13 +19,13 @@ package dev.niubi.problem.spring.autoconfigure.web.servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.niubi.problem.spring.autoconfigure.ProblemProperties;
 import dev.niubi.problem.spring.web.ProblemAdviceManager;
+import dev.niubi.problem.spring.web.i18n.ProblemMessageSource;
 import dev.niubi.problem.spring.web.servlet.MessageSourceProblemConsumer;
 import dev.niubi.problem.spring.web.servlet.ProblemConsumer;
 import dev.niubi.problem.spring.web.servlet.ProblemHandlerExceptionResolver;
 import javax.servlet.Servlet;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -59,10 +59,10 @@ public class ProblemMvcAutoConfiguration {
   }
 
   @Bean
-  @ConditionalOnBean(MessageSource.class)
   @ConditionalOnProperty(value = "dev.niubi.problem.i18n", havingValue = "true")
-  public MessageSourceProblemConsumer messageSourceProblemFunction(MessageSource messageSource) {
-    return new MessageSourceProblemConsumer(messageSource);
+  public MessageSourceProblemConsumer messageSourceProblemFunction(ObjectProvider<MessageSource> messageSource) {
+    ProblemMessageSource problemMessageSource = new ProblemMessageSource(messageSource.getIfAvailable(() -> null));
+    return new MessageSourceProblemConsumer(problemMessageSource);
   }
 
   @Bean
