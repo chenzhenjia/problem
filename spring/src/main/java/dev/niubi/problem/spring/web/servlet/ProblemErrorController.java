@@ -43,17 +43,19 @@ public class ProblemErrorController extends AbstractHandlerMethodExceptionResolv
   private static final String ERROR_INTERNAL_ATTRIBUTE = ProblemErrorController.class.getName() + ".ERROR";
   private final HandlerExceptionProblemResolver handlerExceptionProblemResolver;
   private final String defaultErrorPath;
+  private final String problemPath;
 
   public ProblemErrorController(
       HandlerExceptionProblemResolver handlerExceptionProblemResolver,
-      String defaultErrorPath) {
+      String problemPath, String defaultErrorPath) {
     this.handlerExceptionProblemResolver = handlerExceptionProblemResolver;
+    this.problemPath = problemPath;
     this.defaultErrorPath = defaultErrorPath;
   }
 
   public ProblemErrorController(
       HandlerExceptionProblemResolver handlerExceptionProblemResolver) {
-    this(handlerExceptionProblemResolver, "/error");
+    this(handlerExceptionProblemResolver, "/problem", "/error");
   }
 
   @RequestMapping
@@ -98,9 +100,18 @@ public class ProblemErrorController extends AbstractHandlerMethodExceptionResolv
       HandlerMethod handlerMethod, Exception ex) {
 
     request.setAttribute(ERROR_INTERNAL_ATTRIBUTE, ex);
-    if (ex != null && ex instanceof ProblemException) {
-      return handlerExceptionProblemResolver.resolveView(request, response, ex);
+    if (ex != null) {
+      if (ex instanceof ProblemException) {
+        return handlerExceptionProblemResolver.resolveView(request, response, ex);
+      } else {
+        try {
+          response.sendRedirect(problemPath);
+        } catch (IOException e) {
+          return handlerExceptionProblemResolver.resolveView(request, response, e);
+        }
+      }
     }
+
     return null;
   }
 

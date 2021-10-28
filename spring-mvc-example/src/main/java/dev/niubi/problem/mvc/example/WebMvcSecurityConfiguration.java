@@ -38,6 +38,10 @@ public class WebMvcSecurityConfiguration extends WebSecurityConfigurerAdapter {
         .formLogin()
         .loginProcessingUrl("/login")
         .failureHandler(securityProblemHandler)
+        .and()
+        .authorizeRequests()
+        .mvcMatchers("/api/**").permitAll()
+//        .anyRequest().authenticated()
     ;
   }
 }

@@ -88,7 +88,8 @@ public class ProblemMvcAutoConfiguration {
 
   public ProblemErrorController problemErrorController(
       HandlerExceptionProblemResolver handlerExceptionProblemResolver) {
-    return new ProblemErrorController(handlerExceptionProblemResolver, serverProperties.getError().getPath());
+    return new ProblemErrorController(handlerExceptionProblemResolver, properties.getServlet().getPath(),
+        serverProperties.getError().getPath());
   }
 
   @Bean
@@ -111,7 +112,7 @@ public class ProblemMvcAutoConfiguration {
     @Override
     public void registerErrorPages(ErrorPageRegistry registry) {
       String relativePath = this.dispatcherServletPath.getRelativePath(properties.getServlet().getPath());
-      registry.addErrorPages(new ErrorPage(relativePath));
+      registry.addErrorPages(new ErrorPage(Throwable.class, relativePath));
 //      registry.addErrorPages(new ErrorPage(HttpStatus.METHOD_NOT_ALLOWED, relativePath));
     }
 
