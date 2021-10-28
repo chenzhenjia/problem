@@ -16,7 +16,7 @@
 
 package dev.niubi.problem.spring.web.servlet.security;
 
-import dev.niubi.problem.spring.web.servlet.ProblemHandlerExceptionResolver;
+import dev.niubi.problem.spring.web.servlet.HandlerExceptionProblemResolver;
 import java.util.Objects;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
@@ -32,11 +32,11 @@ import org.springframework.web.servlet.ModelAndView;
 public class SecurityProblemHandler implements AccessDeniedHandler, AuthenticationEntryPoint,
     AuthenticationFailureHandler {
 
-  private final ProblemHandlerExceptionResolver problemHandlerExceptionResolver;
+  private final HandlerExceptionProblemResolver handlerExceptionProblemResolver;
 
   public SecurityProblemHandler(
-      ProblemHandlerExceptionResolver problemHandlerExceptionResolver) {
-    this.problemHandlerExceptionResolver = problemHandlerExceptionResolver;
+      HandlerExceptionProblemResolver handlerExceptionProblemResolver) {
+    this.handlerExceptionProblemResolver = handlerExceptionProblemResolver;
   }
 
   @Override
@@ -60,7 +60,7 @@ public class SecurityProblemHandler implements AccessDeniedHandler, Authenticati
   }
 
   private void render(HttpServletRequest request, HttpServletResponse response, Exception ex) {
-    ModelAndView mv = problemHandlerExceptionResolver.resolveException(request, response, null, ex);
+    ModelAndView mv = handlerExceptionProblemResolver.resolveView(request, response, ex);
     if (mv == null) {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       return;

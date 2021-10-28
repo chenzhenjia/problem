@@ -20,16 +20,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.niubi.problem.spring.autoconfigure.ProblemProperties;
 import dev.niubi.problem.spring.web.ProblemAdviceManager;
 import dev.niubi.problem.spring.web.i18n.ProblemMessageSource;
+import dev.niubi.problem.spring.web.servlet.DefaultHandlerExceptionProblemResolver;
+import dev.niubi.problem.spring.web.servlet.HandlerExceptionProblemResolver;
 import dev.niubi.problem.spring.web.servlet.MessageSourceProblemConsumer;
 import dev.niubi.problem.spring.web.servlet.ProblemConsumer;
-import dev.niubi.problem.spring.web.servlet.ProblemHandlerExceptionResolver;
+import dev.niubi.problem.spring.web.servlet.ProblemErrorController;
 import javax.servlet.Servlet;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletPath;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.web.server.ErrorPage;
@@ -51,11 +55,14 @@ public class ProblemMvcAutoConfiguration {
 
   private final ProblemProperties properties;
   private final ProblemAdviceManager problemAdviceManager;
+  private final ServerProperties serverProperties;
 
   public ProblemMvcAutoConfiguration(
-      ProblemProperties properties, ProblemAdviceManager problemAdviceManager) {
+      ProblemProperties properties, ProblemAdviceManager problemAdviceManager,
+      ServerProperties serverProperties) {
     this.properties = properties;
     this.problemAdviceManager = problemAdviceManager;
+    this.serverProperties = serverProperties;
   }
 
   @Bean
@@ -66,19 +73,22 @@ public class ProblemMvcAutoConfiguration {
   }
 
   @Bean
-  public ProblemHandlerExceptionResolver problemHandlerExceptionResolver(
+  @ConditionalOnMissingBean
+  public HandlerExceptionProblemResolver defaultHandlerExceptionProblemResolver(
       ObjectProvider<ProblemConsumer> problemFunctionProvider, ObjectMapper objectMapper) {
-    ProblemHandlerExceptionResolver problemHandlerExceptionResolver = new ProblemHandlerExceptionResolver(
-        problemAdviceManager, objectMapper);
+
     ProblemConsumer problemConsumer = problemFunctionProvider.orderedStream().reduce(ProblemConsumer::andThen)
         .orElse(null);
-    problemHandlerExceptionResolver.setProblemFunction(problemConsumer);
-    return problemHandlerExceptionResolver;
+
+    return new DefaultHandlerExceptionProblemResolver(
+        problemAdviceManager, objectMapper, problemConsumer, null);
   }
 
   @Bean
-  public ProblemErrorController problemErrorController() {
-    return new ProblemErrorController(problemAdviceManager);
+
+  public ProblemErrorController problemErrorController(
+      HandlerExceptionProblemResolver handlerExceptionProblemResolver) {
+    return new ProblemErrorController(handlerExceptionProblemResolver, serverProperties.getError().getPath());
   }
 
   @Bean
@@ -100,14 +110,14 @@ public class ProblemMvcAutoConfiguration {
 
     @Override
     public void registerErrorPages(ErrorPageRegistry registry) {
-      ErrorPage errorPage = new ErrorPage(Throwable.class,
-          this.dispatcherServletPath.getRelativePath(properties.getServlet().getPath()));
-      registry.addErrorPages(errorPage);
+      String relativePath = this.dispatcherServletPath.getRelativePath(properties.getServlet().getPath());
+      registry.addErrorPages(new ErrorPage(relativePath));
+//      registry.addErrorPages(new ErrorPage(HttpStatus.METHOD_NOT_ALLOWED, relativePath));
     }
 
     @Override
     public int getOrder() {
-      return -1000;
+      return 1;
     }
   }
 }

@@ -16,7 +16,7 @@
 
 package dev.niubi.problem.spring.autoconfigure.web.servlet;
 
-import dev.niubi.problem.spring.web.servlet.ProblemHandlerExceptionResolver;
+import dev.niubi.problem.spring.web.servlet.HandlerExceptionProblemResolver;
 import dev.niubi.problem.spring.web.servlet.security.SecurityProblemHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,15 +33,15 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
     havingValue = "true", matchIfMissing = true)
 public class ProblemSecurityConfiguration {
 
-  private final ProblemHandlerExceptionResolver problemHandlerExceptionResolver;
+  private final HandlerExceptionProblemResolver handlerExceptionProblemResolver;
 
   public ProblemSecurityConfiguration(
-      ProblemHandlerExceptionResolver problemHandlerExceptionResolver) {
-    this.problemHandlerExceptionResolver = problemHandlerExceptionResolver;
+      HandlerExceptionProblemResolver handlerExceptionProblemResolver) {
+    this.handlerExceptionProblemResolver = handlerExceptionProblemResolver;
   }
 
   @Bean
   public SecurityProblemHandler securityProblemHandler() {
-    return new SecurityProblemHandler(problemHandlerExceptionResolver);
+    return new SecurityProblemHandler(handlerExceptionProblemResolver);
   }
 }

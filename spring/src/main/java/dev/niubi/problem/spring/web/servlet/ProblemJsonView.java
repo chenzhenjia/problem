@@ -22,12 +22,15 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 public class ProblemJsonView extends MappingJackson2JsonView {
 
+  @Nullable
   private final HttpHeaders headers;
 
   public ProblemJsonView(ObjectMapper objectMapper, HttpHeaders headers) {
@@ -41,6 +44,8 @@ public class ProblemJsonView extends MappingJackson2JsonView {
   @Override
   public void render(Map<String, ?> model, HttpServletRequest request,
       @NotNull HttpServletResponse response) throws Exception {
+    request.setAttribute(View.SELECTED_CONTENT_TYPE, MediaType.APPLICATION_PROBLEM_JSON);
+    setResponseContentType(request, response);
     if (headers != null && !headers.isEmpty()) {
       headers.forEach((headerName, headerValues) -> {
         for (String headerValue : headerValues) {
@@ -49,5 +54,13 @@ public class ProblemJsonView extends MappingJackson2JsonView {
       });
     }
     super.render(model, request, response);
+  }
+
+  @Override
+  protected void prepareResponse(HttpServletRequest request,
+      HttpServletResponse response) {
+    setResponseContentType(request, response);
+//    response.setCharacterEncoding(this.encoding.getJavaName());
+    response.addHeader("Cache-Control", "no-store");
   }
 }
