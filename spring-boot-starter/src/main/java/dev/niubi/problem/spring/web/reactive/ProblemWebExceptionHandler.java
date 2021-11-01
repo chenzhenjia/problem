@@ -23,11 +23,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.apache.commons.logging.Log;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
+import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpLogging;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageWriter;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.lang.NonNull;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.reactive.result.view.ViewResolver;
@@ -36,6 +43,7 @@ import reactor.core.publisher.Mono;
 
 public class ProblemWebExceptionHandler implements ErrorWebExceptionHandler {
 
+  private static final Log logger = HttpLogging.forLogName(ProblemWebExceptionHandler.class);
   private final ProblemAdviceManager problemAdviceManager;
   private ReactiveProblemConsumer problemFunction = (exchange, problem) -> {
   };
@@ -68,11 +76,6 @@ public class ProblemWebExceptionHandler implements ErrorWebExceptionHandler {
     if (responseProblem == null) {
       return Mono.error(ex);
     }
-    return writeResponse(exchange, responseProblem);
-  }
-
-  protected Mono<Void> writeResponse(ServerWebExchange exchange,
-      ResponseProblem responseProblem) {
     problemFunction.accept(exchange, responseProblem);
     int statusCode = Optional.ofNullable(responseProblem.getStatus())
         .orElse(ProblemStatus.INTERNAL_SERVER_ERROR)
@@ -82,14 +85,40 @@ public class ProblemWebExceptionHandler implements ErrorWebExceptionHandler {
         .headers(h -> {
           HttpHeaders headers = responseProblem.getHeaders();
           h.addAll(headers);
+          h.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
           h.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
         })
         .body(BodyInserters.fromValue(responseProblem))
+        .doOnNext(response -> logError(exchange, response, ex))
         .flatMap(response -> {
           exchange.getResponse().getHeaders().putAll(response.headers());
           return response.writeTo(exchange, new ResponseContext());
         })
         ;
+  }
+
+  protected void logError(@NonNull ServerWebExchange exchange, ServerResponse response, Throwable throwable) {
+    if (logger.isDebugEnabled()) {
+      logger.debug(exchange.getLogPrefix() + formatError(throwable, exchange));
+    }
+    if (HttpStatus.resolve(response.rawStatusCode()) != null
+        && response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
+      logger.error(LogMessage.of(() -> String.format("%s 500 Server Error for %s",
+          exchange.getLogPrefix(), formatRequest(exchange))), throwable);
+    }
+  }
+
+  private String formatError(Throwable ex, @NonNull ServerWebExchange exchange) {
+    ServerHttpRequest request = exchange.getRequest();
+    String reason = ex.getClass().getSimpleName() + ": " + ex.getMessage();
+    return "Resolved [" + reason + "] for HTTP " + request.getMethodValue() + " " + request.getPath();
+  }
+
+  private String formatRequest(@NonNull ServerWebExchange exchange) {
+    ServerHttpRequest request = exchange.getRequest();
+    String rawQuery = request.getURI().getRawQuery();
+    String query = StringUtils.hasText(rawQuery) ? "?" + rawQuery : "";
+    return "HTTP " + request.getMethodValue() + " \"" + request.getPath() + query + "\"";
   }
 
   private class ResponseContext implements ServerResponse.Context {

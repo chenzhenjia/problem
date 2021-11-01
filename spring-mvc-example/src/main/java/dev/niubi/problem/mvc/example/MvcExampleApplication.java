@@ -18,6 +18,7 @@ package dev.niubi.problem.mvc.example;
 
 import dev.niubi.problem.Problem;
 import dev.niubi.problem.ProblemException;
+import javax.validation.Valid;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.ResponseEntity;
@@ -40,5 +41,10 @@ public class MvcExampleApplication {
   @GetMapping("/api/general/unsupported_operation")
   public ResponseEntity<?> unsupportedOperation() {
     throw new UnsupportedOperationException("测试");
+  }
+
+  @GetMapping("api/valid")
+  public ResponseEntity<?> valid(@Valid ValidObject object) {
+    return ResponseEntity.ok(object);
   }
 }

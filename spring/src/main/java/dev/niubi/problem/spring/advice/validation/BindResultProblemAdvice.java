@@ -18,11 +18,13 @@ package dev.niubi.problem.spring.advice.validation;
 
 import dev.niubi.problem.Problem;
 import dev.niubi.problem.spring.Problems.Validation;
+import dev.niubi.problem.spring.web.ProblemAdvice;
 import org.springframework.context.MessageSource;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.support.WebExchangeBindException;
 
+@ProblemAdvice
 public interface BindResultProblemAdvice {
 
   MessageSource getMessageSource();

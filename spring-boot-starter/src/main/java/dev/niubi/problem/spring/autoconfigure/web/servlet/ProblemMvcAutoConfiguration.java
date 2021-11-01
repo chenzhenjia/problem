@@ -25,6 +25,7 @@ import dev.niubi.problem.spring.web.servlet.HandlerExceptionProblemResolver;
 import dev.niubi.problem.spring.web.servlet.MessageSourceProblemConsumer;
 import dev.niubi.problem.spring.web.servlet.ProblemConsumer;
 import dev.niubi.problem.spring.web.servlet.ProblemErrorController;
+import java.util.Arrays;
 import javax.servlet.Servlet;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -44,6 +45,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.DispatcherServlet;
 
 @Configuration(proxyBeanMethods = false)
@@ -87,9 +89,10 @@ public class ProblemMvcAutoConfiguration {
   @Bean
 
   public ProblemErrorController problemErrorController(
+      DispatcherServletPath dispatcherServletPath,
       HandlerExceptionProblemResolver handlerExceptionProblemResolver) {
-    return new ProblemErrorController(handlerExceptionProblemResolver, properties.getServlet().getPath(),
-        serverProperties.getError().getPath());
+    String defaultErrorPath = dispatcherServletPath.getRelativePath(serverProperties.getError().getPath());
+    return new ProblemErrorController(handlerExceptionProblemResolver, defaultErrorPath);
   }
 
   @Bean
@@ -113,7 +116,11 @@ public class ProblemMvcAutoConfiguration {
     public void registerErrorPages(ErrorPageRegistry registry) {
       String relativePath = this.dispatcherServletPath.getRelativePath(properties.getServlet().getPath());
       registry.addErrorPages(new ErrorPage(Throwable.class, relativePath));
-//      registry.addErrorPages(new ErrorPage(HttpStatus.METHOD_NOT_ALLOWED, relativePath));
+      Arrays.stream(HttpStatus.values())
+          .filter(HttpStatus::is4xxClientError)
+          .map(httpStatus -> new ErrorPage(httpStatus, relativePath))
+          .forEach(registry::addErrorPages)
+      ;
     }
 
     @Override

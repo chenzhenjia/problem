@@ -16,16 +16,22 @@
 
 package dev.niubi.problem;
 
+import java.util.Optional;
+
 public class ProblemException extends RuntimeException {
 
   private final Problem problem;
-  private String message;
+  private final String message;
 
   public ProblemException(Problem problem) {
     this.problem = problem;
-    if (problem.getTitle() != null) {
-      this.message = problem.getTitle();
-    }
+    this.message = Optional.ofNullable(problem.getDetail())
+        .orElseGet(() -> {
+          if (problem.getTitle() != null) {
+            return problem.getTitle();
+          }
+          return ProblemException.class.getSimpleName();
+        });
   }
 
   public Problem getProblem() {

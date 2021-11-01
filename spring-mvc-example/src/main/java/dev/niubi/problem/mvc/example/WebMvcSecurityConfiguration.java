@@ -16,7 +16,6 @@
 
 package dev.niubi.problem.mvc.example;
 
-import dev.niubi.problem.spring.web.servlet.security.SecurityProblemHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -24,12 +23,12 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @Configuration(proxyBeanMethods = false)
 public class WebMvcSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-  private final SecurityProblemHandler securityProblemHandler;
-
-  public WebMvcSecurityConfiguration(
-      SecurityProblemHandler securityProblemHandler) {
-    this.securityProblemHandler = securityProblemHandler;
-  }
+//  private final SecurityProblemHandler securityProblemHandler;
+//
+//  public WebMvcSecurityConfiguration(
+//      SecurityProblemHandler securityProblemHandler) {
+//    this.securityProblemHandler = securityProblemHandler;
+//  }
 
   @Override
   protected void configure(
@@ -37,7 +36,7 @@ public class WebMvcSecurityConfiguration extends WebSecurityConfigurerAdapter {
     http.csrf().disable()
         .formLogin()
         .loginProcessingUrl("/login")
-        .failureHandler(securityProblemHandler)
+//        .failureHandler(securityProblemHandler)
         .and()
         .authorizeRequests()
         .mvcMatchers("/api/**").permitAll()

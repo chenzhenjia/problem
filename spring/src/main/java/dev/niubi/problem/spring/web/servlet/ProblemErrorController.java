@@ -17,16 +17,17 @@
 package dev.niubi.problem.spring.web.servlet;
 
 import dev.niubi.problem.Problem;
-import dev.niubi.problem.ProblemException;
 import dev.niubi.problem.ProblemStatus;
 import dev.niubi.problem.spring.ResponseProblem;
 import java.io.IOException;
 import java.util.Optional;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.RequestAttributes;
@@ -40,35 +41,33 @@ import org.springframework.web.servlet.handler.AbstractHandlerMethodExceptionRes
 @RequestMapping("${dev.niubi.problem.servlet.path:${problem.path:/problem}}")
 public class ProblemErrorController extends AbstractHandlerMethodExceptionResolver {
 
-  private static final String ERROR_INTERNAL_ATTRIBUTE = ProblemErrorController.class.getName() + ".ERROR";
   private final HandlerExceptionProblemResolver handlerExceptionProblemResolver;
   private final String defaultErrorPath;
-  private final String problemPath;
 
   public ProblemErrorController(
-      HandlerExceptionProblemResolver handlerExceptionProblemResolver,
-      String problemPath, String defaultErrorPath) {
+      HandlerExceptionProblemResolver handlerExceptionProblemResolver, String defaultErrorPath) {
     this.handlerExceptionProblemResolver = handlerExceptionProblemResolver;
-    this.problemPath = problemPath;
     this.defaultErrorPath = defaultErrorPath;
+    setWarnLogCategory(ProblemErrorController.class.getName());
   }
 
   public ProblemErrorController(
       HandlerExceptionProblemResolver handlerExceptionProblemResolver) {
-    this(handlerExceptionProblemResolver, "/problem", "/error");
+    this(handlerExceptionProblemResolver, "/error");
   }
 
   @RequestMapping
-  public ResponseEntity<Problem> error(HttpServletRequest request, HttpServletResponse response) throws IOException {
+  public ResponseEntity<Problem> error(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
     Throwable throwable = getError(new ServletWebRequest(request));
     if (throwable == null) {
-      response.sendRedirect(defaultErrorPath);
+      request.getRequestDispatcher(defaultErrorPath).forward(request, response);
       return null;
     }
     ResponseProblem responseProblem = handlerExceptionProblemResolver.resolveProblem(request, response, throwable);
     if (responseProblem == null) {
       request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, throwable);
-      response.sendRedirect(defaultErrorPath);
+      request.getRequestDispatcher(defaultErrorPath).forward(request, response);
       return null;
     }
     int statusCode = Optional.ofNullable(responseProblem.getStatus())
@@ -81,11 +80,7 @@ public class ProblemErrorController extends AbstractHandlerMethodExceptionResolv
   }
 
   private Throwable getError(WebRequest webRequest) {
-    Throwable exception = getAttribute(webRequest, ERROR_INTERNAL_ATTRIBUTE);
-    if (exception == null) {
-      exception = getAttribute(webRequest, RequestDispatcher.ERROR_EXCEPTION);
-    }
-    return exception;
+    return getAttribute(webRequest, RequestDispatcher.ERROR_EXCEPTION);
   }
 
 
@@ -97,22 +92,8 @@ public class ProblemErrorController extends AbstractHandlerMethodExceptionResolv
   @Override
   protected ModelAndView doResolveHandlerMethodException(
       HttpServletRequest request, HttpServletResponse response,
-      HandlerMethod handlerMethod, Exception ex) {
-
-    request.setAttribute(ERROR_INTERNAL_ATTRIBUTE, ex);
-    if (ex != null) {
-      if (ex instanceof ProblemException) {
-        return handlerExceptionProblemResolver.resolveView(request, response, ex);
-      } else {
-        try {
-          response.sendRedirect(problemPath);
-        } catch (IOException e) {
-          return handlerExceptionProblemResolver.resolveView(request, response, e);
-        }
-      }
-    }
-
-    return null;
+      HandlerMethod handlerMethod, @Nullable Exception ex) {
+    return handlerExceptionProblemResolver.resolveView(request, response, ex);
   }
 
   @Override
