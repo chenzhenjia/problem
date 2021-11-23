@@ -225,8 +225,8 @@ public class Problem {
   }
 
   public String toString() {
-    return "Problem(type=" + this.type + ", title=" + this.title + ", status=" + this.status
-        + ", detail=" + this.detail + ")";
+    return "type=" + this.type + ", title=" + this.title + ", status=" + this.status
+        + ", detail=" + this.detail;
   }
 
   public static class ExtendedProblem extends Problem {
@@ -345,8 +345,7 @@ public class Problem {
     }
 
     public String toString() {
-      return "Problem.ExtendedProblem(extendedProperties=" + this.extendedProperties + ", properties=" + this.properties
-          + ")";
+      return super.toString() + ", extendedProperties=" + this.extendedProperties + ", properties=" + this.properties;
     }
   }
 }

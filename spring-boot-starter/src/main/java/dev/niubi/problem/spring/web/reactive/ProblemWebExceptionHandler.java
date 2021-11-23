@@ -82,16 +82,15 @@ public class ProblemWebExceptionHandler implements ErrorWebExceptionHandler {
         .value();
     return ServerResponse
         .status(statusCode)
-        .headers(h -> {
-          HttpHeaders headers = responseProblem.getHeaders();
-          h.addAll(headers);
-          h.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
-          h.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
-        })
         .body(BodyInserters.fromValue(responseProblem))
         .doOnNext(response -> logError(exchange, response, ex))
         .flatMap(response -> {
-          exchange.getResponse().getHeaders().putAll(response.headers());
+          HttpHeaders headers = exchange.getResponse().getHeaders();
+          headers.putAll(response.headers());
+          headers.addAll(responseProblem.getHeaders());
+          headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
+          headers.remove(HttpHeaders.CONTENT_TYPE);
+          headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
           return response.writeTo(exchange, new ResponseContext());
         })
         ;

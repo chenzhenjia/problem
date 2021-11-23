@@ -30,7 +30,7 @@ public class ProblemException extends RuntimeException {
           if (problem.getTitle() != null) {
             return problem.getTitle();
           }
-          return ProblemException.class.getSimpleName();
+          return problem.toString();
         });
   }
 

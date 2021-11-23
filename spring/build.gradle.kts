@@ -14,7 +14,7 @@ dependencies {
     }
     compileOnly("org.springframework.security:spring-security-web")
     compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
-    compileOnly("jakarta.validation:jakarta.validation-api:3.0.0")
+    compileOnly("jakarta.validation:jakarta.validation-api")
     compileOnly("org.springframework:spring-webflux")
     compileOnly("org.springframework:spring-webmvc")
     compileOnly("jakarta.servlet:jakarta.servlet-api")

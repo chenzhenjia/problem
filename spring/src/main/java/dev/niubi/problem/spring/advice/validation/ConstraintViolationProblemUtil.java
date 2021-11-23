@@ -18,8 +18,6 @@ package dev.niubi.problem.spring.advice.validation;
 
 import static java.util.stream.Collectors.toList;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.metadata.ConstraintDescriptor;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import javax.validation.ConstraintViolation;
+import javax.validation.metadata.ConstraintDescriptor;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceResolvable;

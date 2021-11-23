@@ -22,7 +22,7 @@ dependencies {
     compileOnly("org.springframework:spring-webflux")
     compileOnly("org.springframework:spring-webmvc")
     compileOnly("jakarta.servlet:jakarta.servlet-api")
-    compileOnly("jakarta.validation:jakarta.validation-api:3.0.0")
+    compileOnly("jakarta.validation:jakarta.validation-api")
     compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
