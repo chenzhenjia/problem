@@ -25,6 +25,8 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
@@ -43,12 +45,14 @@ public class ProblemErrorController extends AbstractHandlerMethodExceptionResolv
 
   private final HandlerExceptionProblemResolver handlerExceptionProblemResolver;
   private final String defaultErrorPath;
+  private Log warnLogger;
 
   public ProblemErrorController(
       HandlerExceptionProblemResolver handlerExceptionProblemResolver, String defaultErrorPath) {
     this.handlerExceptionProblemResolver = handlerExceptionProblemResolver;
     this.defaultErrorPath = defaultErrorPath;
     setWarnLogCategory(ProblemErrorController.class.getName());
+    warnLogger = LogFactory.getLog(ProblemErrorController.class.getName());
   }
 
   public ProblemErrorController(
@@ -57,7 +61,7 @@ public class ProblemErrorController extends AbstractHandlerMethodExceptionResolv
   }
 
   @RequestMapping
-  public ResponseEntity<Problem> error(HttpServletRequest request, HttpServletResponse response)
+  public ResponseEntity<Problem> problem(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     Throwable throwable = getError(new ServletWebRequest(request));
     if (throwable == null) {
@@ -99,5 +103,12 @@ public class ProblemErrorController extends AbstractHandlerMethodExceptionResolv
   @Override
   public int getOrder() {
     return HIGHEST_PRECEDENCE;
+  }
+
+  @Override
+  protected void logException(Exception ex, HttpServletRequest request) {
+    if (this.warnLogger.isWarnEnabled()) {
+      this.warnLogger.warn(buildLogMessage(ex, request), ex);
+    }
   }
 }
