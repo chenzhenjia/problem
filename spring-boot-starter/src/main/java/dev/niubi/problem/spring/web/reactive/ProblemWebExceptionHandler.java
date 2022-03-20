@@ -21,11 +21,14 @@ import dev.niubi.problem.spring.ResponseProblem;
 import dev.niubi.problem.spring.web.ProblemAdviceManager;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpLogging;
@@ -43,7 +46,18 @@ import reactor.core.publisher.Mono;
 
 public class ProblemWebExceptionHandler implements ErrorWebExceptionHandler {
 
+  private static final Set<String> DISCONNECTED_CLIENT_EXCEPTIONS;
   private static final Log logger = HttpLogging.forLogName(ProblemWebExceptionHandler.class);
+
+  static {
+    Set<String> exceptions = new HashSet<>();
+    exceptions.add("AbortedException");
+    exceptions.add("ClientAbortException");
+    exceptions.add("EOFException");
+    exceptions.add("EofException");
+    DISCONNECTED_CLIENT_EXCEPTIONS = Collections.unmodifiableSet(exceptions);
+  }
+
   private final ProblemAdviceManager problemAdviceManager;
   private ReactiveProblemConsumer problemFunction = (exchange, problem) -> {
   };
@@ -69,6 +83,9 @@ public class ProblemWebExceptionHandler implements ErrorWebExceptionHandler {
   @Override
   @NotNull
   public Mono<Void> handle(@NonNull ServerWebExchange exchange, @NotNull Throwable ex) {
+    if (exchange.getResponse().isCommitted() || isDisconnectedClientError(ex)) {
+      return Mono.error(ex);
+    }
     if (problemAdviceManager == null) {
       return Mono.error(ex);
     }
@@ -94,6 +111,16 @@ public class ProblemWebExceptionHandler implements ErrorWebExceptionHandler {
           return response.writeTo(exchange, new ResponseContext());
         })
         ;
+  }
+
+  private boolean isDisconnectedClientError(Throwable ex) {
+    return DISCONNECTED_CLIENT_EXCEPTIONS.contains(ex.getClass().getSimpleName())
+        || isDisconnectedClientErrorMessage(NestedExceptionUtils.getMostSpecificCause(ex).getMessage());
+  }
+
+  private boolean isDisconnectedClientErrorMessage(String message) {
+    message = (message != null) ? message.toLowerCase() : "";
+    return (message.contains("broken pipe") || message.contains("connection reset by peer"));
   }
 
   protected void logError(@NonNull ServerWebExchange exchange, ServerResponse response, Throwable throwable) {
